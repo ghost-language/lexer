@@ -37,33 +37,41 @@ func (lexer *Lexer) NextToken() token.Token {
 
 	switch lexer.ch {
 	case '=':
-		tok = newToken(token.ASSIGN, lexer.ch)
+		if lexer.peekChar() == '=' {
+			tok = lexer.newTwoCharToken(token.EQ)
+		} else {
+			tok = lexer.newToken(token.ASSIGN)
+		}
 	case '+':
-		tok = newToken(token.PLUS, lexer.ch)
+		tok = lexer.newToken(token.PLUS)
 	case '-':
-		tok = newToken(token.MINUS, lexer.ch)
+		tok = lexer.newToken(token.MINUS)
 	case '!':
-		tok = newToken(token.BANG, lexer.ch)
+		if lexer.peekChar() == '=' {
+			tok = lexer.newTwoCharToken(token.NOT_EQ)
+		} else {
+			tok = lexer.newToken(token.BANG)
+		}
 	case '/':
-		tok = newToken(token.SLASH, lexer.ch)
+		tok = lexer.newToken(token.SLASH)
 	case '*':
-		tok = newToken(token.ASTERISK, lexer.ch)
+		tok = lexer.newToken(token.ASTERISK)
 	case '<':
-		tok = newToken(token.LT, lexer.ch)
+		tok = lexer.newToken(token.LT)
 	case '>':
-		tok = newToken(token.GT, lexer.ch)
+		tok = lexer.newToken(token.GT)
 	case ';':
-		tok = newToken(token.SEMICOLON, lexer.ch)
+		tok = lexer.newToken(token.SEMICOLON)
 	case ',':
-		tok = newToken(token.COMMA, lexer.ch)
+		tok = lexer.newToken(token.COMMA)
 	case '(':
-		tok = newToken(token.LPAREN, lexer.ch)
+		tok = lexer.newToken(token.LPAREN)
 	case ')':
-		tok = newToken(token.RPAREN, lexer.ch)
+		tok = lexer.newToken(token.RPAREN)
 	case '{':
-		tok = newToken(token.LBRACE, lexer.ch)
+		tok = lexer.newToken(token.LBRACE)
 	case '}':
-		tok = newToken(token.RBRACE, lexer.ch)
+		tok = lexer.newToken(token.RBRACE)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -77,7 +85,7 @@ func (lexer *Lexer) NextToken() token.Token {
 			tok.Literal = lexer.readNumber()
 			return tok
 		} else {
-			tok = newToken(token.ILLEGAL, lexer.ch)
+			tok = lexer.newToken(token.ILLEGAL)
 		}
 	}
 
@@ -86,6 +94,21 @@ func (lexer *Lexer) NextToken() token.Token {
 	return tok
 }
 
+// peekChar "peeks" ahead at the next character without
+// incrementing the current read position. This is useful
+// for determining if the next character has any meaning
+// to the current one.
+func (lexer *Lexer) peekChar() byte {
+	if lexer.readPosition >= len(lexer.input) {
+		return 0
+	}
+
+	return lexer.input[lexer.readPosition]
+}
+
+// readIdentifier loops through characters until it finds
+// a non alphabetical character. Once this process ends, it returns
+// the alphabetical value as a whole.
 func (lexer *Lexer) readIdentifier() string {
 	position := lexer.position
 
@@ -96,6 +119,9 @@ func (lexer *Lexer) readIdentifier() string {
 	return lexer.input[position:lexer.position]
 }
 
+// readNumber loops through characters until it no longer
+// finds a number value. Once this process ends, it returns
+// the numeric value as a whole.
 func (lexer *Lexer) readNumber() string {
 	position := lexer.position
 
@@ -106,20 +132,35 @@ func (lexer *Lexer) readNumber() string {
 	return lexer.input[position:lexer.position]
 }
 
+// isLetter determines if the passed character is
+// an alphabetic value.
 func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
 }
 
+// isDigit determines if the passed character is
+// a numeric value.
 func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
 
-// newToken takes in the desired token type and current character
+// lexer.newToken takes in the desired token type and current character
 // and returns a new Token instance.
-func newToken(tokenType token.TokenType, ch byte) token.Token {
-	return token.Token{Type: tokenType, Literal: string(ch)}
+func (lexer *Lexer) newToken(tokenType token.TokenType) token.Token {
+	return token.Token{Type: tokenType, Literal: string(lexer.ch)}
 }
 
+func (lexer *Lexer) newTwoCharToken(tokenType token.TokenType) token.Token {
+	ch := lexer.ch
+	lexer.readChar()
+	literal := string(ch) + string(lexer.ch)
+
+	return token.Token{Type: tokenType, Literal: literal}
+}
+
+// skipWhitespace loops through and skips over any "whitespace"
+// characters. These are completely ignored by the tokenization
+// process as they have no meaning with our programs.
 func (lexer *Lexer) skipWhitespace() {
 	for lexer.ch == ' ' || lexer.ch == '\t' || lexer.ch == '\n' || lexer.ch == '\r' {
 		lexer.readChar()
