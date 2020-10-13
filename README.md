@@ -1,5 +1,14 @@
-# Lexer
+# Toy Lexer
 These are notes and a working example of a lexer written in Go. This was developed by going through the **Lexing** portion of [Writing An Interpreter In Go](https://interpreterbook.com/).
+
+**This does not contain a working programming language.** This repository only contains an example toy lexical analyzer used as the first step in creating a programming language. **A lexer takes source code as input and outputs the tokens that represent it.** In our toy lexer, you will find the following subset tokens:
+
+| Token | Description |
+|-------|-------------|
+| `ILLEGAL` | Denotes a value or set of characters that the lexer does not recognize. |
+| `EOF` | Denotes the **end of file**. Every program will end with an `EOF` token. |
+| `IDENT` | Denotes a user-defined **identifier**. |
+| `INT` | Denotes an **integer**. |
 
 ## Notes
 - A **lexer** takes source code as input and output the tokens that represent it. It is also known as **lexical analysis**, **lexing**, or **tokenization**.
